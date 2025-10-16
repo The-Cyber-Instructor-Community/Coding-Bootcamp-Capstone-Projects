@@ -1,0 +1,136 @@
+import getopt, sys
+import re
+import psutil
+import time
+import logging
+import smtplib
+import ssl
+from email.message import EmailMessage
+
+"""
+Capstone by Carol On
+October 10, 2025
+
+Host-based IDS (HIDS):
+Monitoring  system processes and data files for signs of compromise.
+Real-time Alerts
+
+# pip3 install psutil
+# RUN
+# python3 ids.py rules.txt packets.txt -a alerts_on
+
+"""
+
+class Customized_IDS:  
+    # Constructor method (initializer)
+    def __init__(self):
+      self.rules = []
+      self.alerts = []
+
+    def add_rule(self, rule_pattern):
+      self.rules.append(rule_pattern)
+      return rule_pattern
+
+    def analyze_traffic(self, packet_data):
+      # Simulate network traffic analysis
+      for rule in self.rules:
+          if rule in packet_data:
+              alert_message = f"Intrusion detected: {rule} in {packet_data}"
+              self.alerts.append(alert_message)
+              return alert_message
+
+    def get_alerts(self):
+        return self.alerts
+# END Customized_IDS class
+
+def get_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            content = file.read()
+            return content
+    except FileNotFoundError:
+        with open(file_path, 'w') as file:
+            file.write('malicious_signature')
+            return file_path
+    except Exception as e:
+        with open(file_path, 'w') as file:
+            file.write('malicious_signature')
+        print(f"An error occurred: {e}")
+        return file_path
+# END get_file_content
+import re
+
+def is_valid_email_regex(emailaddress):
+    regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.fullmatch(regex, emailaddress) is not None
+
+def send_alert(subject, body, recipientemails):
+    """Sends an email alert using SMTP."""
+    port = 465
+    senderemail = "hack.biscutt@gmail.comm"
+    senderpassword = "emtodsflsswkocph"
+    try:        
+        context = ssl.create_default_context()
+        msg = EmailMessage()
+        msg.set_content(body)
+        msg['Subject'] = subject
+        msg['From'] = senderemail
+        msg['To'] = recipientemails
+           
+        with smtplib.SMTP_SSL('smtp.gmail.com', port, context=context) as sslsmtp:
+            sslsmtp.login(senderemail, senderpassword)
+            sslsmtp.send_message(msg)
+        logging.info("Sent email alert: %s", subject)
+    except Exception as e:
+        logging.error("Failed to send email: %s", e)
+
+if __name__ == "__main__":
+    args = sys.argv[3:]
+    options = "a:"
+    long_options = ["Send Alerts="]
+    file_rulepattern = sys.argv[1]
+    file_datapacket = sys.argv[2]
+    # --- Configuration ---
+    rulepatterns = get_file_content(file_rulepattern)
+    datapackets = get_file_content(file_datapacket)
+    alertmode = "alert_on" # alert_on alert_off
+    recipient_email = "carol.on@gmail.com"
+    ALERT_THRESHOLD = 80.0  # Percentage
+    CHECK_INTERVAL_SECONDS = 10
+        
+    finance_ids = Customized_IDS()
+
+    for rulepattern in rulepatterns.splitlines():
+      finance_ids.add_rule(rulepattern)
+
+    for datapacket in datapackets.splitlines():
+      finance_ids.analyze_traffic(datapacket)
+
+    if alertmode == "alert_on":
+      alert_messages = finance_ids.get_alerts()
+      if alert_messages:
+        send_alert("Finance Dept. Intrusion Alert", "\n".join(alert_messages), recipient_email)
+
+    logging.info("Starting system monitor...")
+    while True:
+        cpu_percent = psutil.cpu_percent(interval=1)
+        logging.info("Current CPU Usage: %s%%", cpu_percent)
+
+        if cpu_percent > ALERT_THRESHOLD:
+            alert_message = f"HIGH CPU ALERT! Current usage is {cpu_percent}%."
+            logging.warning(alert_message)
+            send_alert("High CPU Alert", alert_message)
+
+        time.sleep(CHECK_INTERVAL_SECONDS)
+        
+    try:
+        arguments, values = getopt.getopt(args, options, long_options)
+        for currentArg, currentVal in arguments:
+            if currentArg in ("-a", "--Alerts"):    
+                alertmode =currentVal     
+    except getopt.error as err:
+        print(str(err))
+    
+
+#END IDS
+

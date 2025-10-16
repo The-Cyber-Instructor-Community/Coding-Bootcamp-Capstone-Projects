@@ -1,0 +1,4 @@
+normal_http_request
+malicious_signature_found_here
+another_normal_packet
+port_scan_attempt_from_ip_192.168.1.100
